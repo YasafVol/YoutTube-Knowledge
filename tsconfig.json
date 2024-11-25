@@ -15,8 +15,22 @@
       "DOM",
       "ES5",
       "ES6",
-      "ES7"
-    ]
+      "ES7",
+      "ES2015",
+      "ES2015.Promise",
+      "ES2015.Collection",
+      "ES2015.Iterable"
+    ],
+    "types": [
+      "node",
+      "youtube",
+      "jest"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "include": [
     "**/*.ts"

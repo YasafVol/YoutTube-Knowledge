@@ -1,182 +1,78 @@
-# YouTube Transcript Plugin for Obsidian 0.0.0
+# YouTube Knowledge Plugin for Obsidian
 
+This plugin enhances your note-taking experience in Obsidian by automatically saving YouTube video transcripts and generating AI-powered summaries using the Anthropic Claude API.
 
-## Project Structure
-```
-src/
-├── ui/
-│   ├── RibbonButton.ts         # Ribbon UI component
-│   └── TranscriptModal.ts       # Modal UI component
-├── services/
-│   ├── URLProcessor.ts          # URL cleaning and validation
-│   ├── YouTubeService.ts        # Transcript fetching*
-│   └── FileService.ts           # File operations
-├── types/
-│   └── index.ts                # Type definitions
-└── main.ts                     # Plugin entry point
-```
+## Features
 
-## Components
+- **Transcript Extraction**: Automatically saves YouTube video transcripts to your vault
+- **AI-Powered Summaries**: Generates comprehensive summaries of video content using Anthropic's Claude AI
+- **Multiple Video Format Support**: Works with various YouTube URL formats:
+  - Standard YouTube URLs
+  - YouTube Shorts
+  - Embedded videos
+  - Mobile URLs
 
-### 0. RibbonButton (UI Layer) - done
-**Responsibility**: Quick access trigger in Obsidian's left ribbon
-- Creates ribbon button with `message-square-share` icon
-- Triggers TranscriptModal on click
-- Handles button state/visibility
-- Returns: `void`
+## Requirements
 
+- Obsidian v0.1.0 or higher
+- An Anthropic API key
+- Desktop installation of Obsidian (mobile not supported)
 
+## Installation
 
-### 1. TranscriptModal (UI Layer) - done
-**Responsibility**: User interaction and input collection
-- Shows input field for YouTube URL
-- Handles user submission
-- Displays success/error messages
-- Returns: `string` (dirty URL)
+1. Open Obsidian Settings
+2. Navigate to Community Plugins and disable Safe Mode
+3. Click Browse and search for "YouTube Knowledge"
+4. Install the plugin
+5. Enable the plugin in your list of installed plugins
 
-### 2. URLProcessor (Service Layer) - done
-**Responsibility**: URL processing and validation
-- Cleans and validates YouTube URLs
-- Extracts video IDs
-- Input: `string` (dirty URL)
-- Returns: `string` (clean URL)
+## Configuration
 
-### 3. YouTubeService (Service Layer) - done
-**Responsibility**: Transcript retrieval
-- Handles YouTube API interaction
-- Fetches transcripts
-- Input: `string` (clean URL)
-- Returns: `string` (transcript text)
+### YouTube Settings
+- **Language**: Set your preferred transcript language (default: 'en')
+- **Timeframe**: Set the timeframe in seconds for transcript segmentation (default: 60)
 
-### 4. FileService (Service Layer) - done
-**Responsibility**: File operations
-- Creates markdown files
-- Writes content
-- Handles file naming
-- Input: `string` (transcript), `string` (title)
-- Returns: `void`
+### LLM Settings
+- **Anthropic API Key**: Your Claude API key (required)
+- **Summary Prompt**: Customize the prompt used for generating summaries
+- **Model Selection**: Choose from available Claude models:
+  - Claude 3.5 Sonnet (default)
+  - Claude 3.5 Haiku
+  - Claude 3 Opus
+  - Claude 3 Sonnet
+  - Claude 3 Haiku
 
-## Data Flow
-1. User enters URL in modal
-2. URL is processed and cleaned
-3. Clean URL used to fetch transcript
-4. New file created with video title
-5. Transcript written to file
-6. Success/error message shown to user
+## Usage
 
-## Types
-```typescript
-interface RibbonButtonOptions {
-    icon: string;        // 'message-square-share'
-    tooltip: string;     // Button hover text
-    onClick: () => void; // Modal trigger function
-}
+1. Copy a YouTube video URL
+2. Use the plugin command in Obsidian
+3. The plugin will:
+   - Extract the video transcript
+   - Save it as a markdown file in your vault
+   - Generate an AI summary in a separate file
+   - Link the summary to the transcript using Obsidian's wiki-links
 
-interface TranscriptResult {
-    text: string;
-    title: string;
-    url: string;
-    timestamp: Date;
-}
+## Cost Information
 
-interface FileCreationOptions {
-    title: string;
-    content: string;
-    folder?: string;
-    timestamp: Date;
-}
-```
+The plugin uses Anthropic's Claude API for generating summaries. Costs vary by model:
 
-## Error Handling
-- URL validation errors
-- YouTube API errors
-- File system errors
-- Network errors
+- **Claude 3.5 Sonnet/Opus**:
+  - Input: $0.015 per 1K tokens
+  - Output: $0.075 per 1K tokens
+- **Claude 3.5 Haiku**:
+  - Input: $0.003 per 1K tokens
+  - Output: $0.015 per 1K tokens
 
-## Future Enhancements
-- Custom folder selection
-- Transcript formatting options
-- Multiple video processing
-- Progress indicators
-- Settings management
+The exact cost per summary will depend on the length of the video transcript and the generated summary.
 
-```mermaid
-sequenceDiagram
-    participant Ribbon as RibbonButton
-    participant Modal as TranscriptModal
-    participant URL as URLProcessor
-    participant YT as YouTubeService
-    participant File as FileService
-    
-    Note over Ribbon: User clicks icon
-    Ribbon->>Modal: Open Modal
+## Support
 
-    Note over Modal: User inputs URL
-    Modal->>URL: Pass dirty URL
-    URL->>URL: Extract clean URL/ID
-    URL->>YT: Request Transcript
+For bug reports and feature requests, please visit the [GitHub repository](https://github.com/YasafVol/Youtube-knowledge).
 
-    YT-->>URL: Return Transcript + Title
-    URL->>File: Pass Transcript Data
+## Credits
 
-    File->>File: Create MD File
-    File->>File: Write Content
-    File-->>Modal: Success/Error Notice
-    Modal-->>Ribbon: Close Modal
+Created by [YasafVol](https://github.com/YasafVol)
 
-    Note over Modal: Alternative Entry
-    Note over Modal: Command Palette
-    
-    rect rgb(240, 240, 240)
-        Note right of File: File Structure
-        File->>File: Create folder if needed
-        File->>File: Generate filename
-        File->>File: Format content
-        File->>File: Write to disk
-    end
-```
+## License
 
-
-```
-After analyzing the codebase, I can now describe the data flows in this Obsidian plugin application. Let me use attempt_completion to provide a comprehensive overview of the data flows.
-
-Task Completed
-
-The application is an Obsidian plugin with the following key data flows:
-
-1. User Interface Flow:
-    
-    - Entry point is through two ribbon buttons in the Obsidian interface:
-        - Main transcript button (RibbonButton)
-        - File handling button (FileRibbonButton)
-    - When clicked, the main button opens a TranscriptModal for URL input
-2. URL Processing Flow:
-    
-    - Raw URL (dirtyURL) → URLProcessor
-    - URLProcessor performs:
-        - URL cleaning and whitespace removal
-        - Video ID extraction using multiple YouTube URL format patterns
-        - URL validation and standardization to format: https://www.youtube.com/watch?v={videoId}
-        - Fetches video metadata using the page HTML
-3. YouTube Service Flow:
-    
-    - Clean URL → YouTubeService
-    - YouTubeService fetches the transcript from YouTube
-    - Returns transcript data back to the main flow
-4. File Management Flow:
-    
-    - FileService handles file operations with the following data path:
-        - Receives video title, URL, and transcript
-        - Sanitizes the title for valid filename
-        - Creates a markdown file with frontmatter (URL and creation date)
-        - Handles filename conflicts by appending numbers
-        - Stores the file in the Obsidian vault
-5. Error Handling Flow:
-    
-    - Errors from any service are caught and displayed to user via Obsidian Notice
-    - Error logging to console for debugging
-
-The overall data pipeline is: User Input → URL Processing → YouTube Data Fetch → File Creation → Obsidian Storage
-
-Each step includes validation and error handling, with user feedback through the Obsidian Notice system and console logging for debugging purposes.
-```
+This project is licensed under the MIT License.

@@ -1,16 +1,21 @@
 import { App, request } from 'obsidian';
-import { FileService } from './FileService';
 import { YouTubeService } from './YouTubeService';
+
+interface ProcessedURLData {
+    cleanURL: string;
+    title: string;
+    transcript: string;
+}
 
 export class URLProcessor {
     /**
      * Processes and validates a YouTube URL
      * @param dirtyURL - The raw URL input from the user
      * @param app - The Obsidian App instance
-     * @returns The cleaned and validated URL
+     * @returns ProcessedURLData containing clean URL, title, and transcript
      * @throws Error if URL is invalid
      */
-    public static async processURL(dirtyURL: string, app: App): Promise<string> {
+    public static async processURL(dirtyURL: string, app: App): Promise<ProcessedURLData> {
         try {
             // Remove whitespace
             let cleanURL = dirtyURL.trim();
@@ -34,11 +39,11 @@ export class URLProcessor {
             // Fetch transcript
             const transcript = await YouTubeService.fetchTranscript(cleanURL);
             
-            // Create file using FileService
-            const fileService = new FileService(app);
-            await fileService.createYouTubeVideoFile(title, cleanURL, transcript);
-
-            return cleanURL;
+            return {
+                cleanURL,
+                title,
+                transcript
+            };
         } catch (error) {
             throw new Error(`URL Processing failed: ${error.message}`);
         }

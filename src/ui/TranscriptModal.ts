@@ -13,6 +13,21 @@ export class TranscriptModal extends Modal {
         const { contentEl } = this;
         contentEl.createEl('h2', { text: 'YouTube Transcript' });
 
+        const submitUrl = () => {
+            if (!this.url) {
+                new Notice('Please enter a YouTube URL');
+                return;
+            }
+
+            try {
+                // Return the URL and close the modal
+                this.onSubmit(this.url);
+                this.close();
+            } catch (error) {
+                new Notice('Failed to process URL: ' + error.message);
+            }
+        };
+
         new Setting(contentEl)
             .setName('YouTube URL')
             .setDesc('Enter a YouTube video link')
@@ -22,6 +37,12 @@ export class TranscriptModal extends Modal {
                     .onChange((value) => {
                         this.url = value;
                     })
+                    .inputEl.addEventListener('keydown', (e: KeyboardEvent) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            submitUrl();
+                        }
+                    })
             );
 
         new Setting(contentEl)
@@ -29,20 +50,7 @@ export class TranscriptModal extends Modal {
                 btn
                     .setButtonText('Get Transcript')
                     .setCta()
-                    .onClick(() => {
-                        if (!this.url) {
-                            new Notice('Please enter a YouTube URL');
-                            return;
-                        }
-
-                        try {
-                            // Return the URL and close the modal
-                            this.onSubmit(this.url);
-                            this.close();
-                        } catch (error) {
-                            new Notice('Failed to process URL: ' + error.message);
-                        }
-                    })
+                    .onClick(submitUrl)
             );
     }
 
@@ -51,6 +59,3 @@ export class TranscriptModal extends Modal {
         contentEl.empty();
     }
 }
-
-
-//to do: Enter to function as clicking on submit button

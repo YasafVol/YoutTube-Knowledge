@@ -33,6 +33,11 @@ export class RibbonButton {
         modal.open();
     }
 
+    // Public method to programmatically trigger the click action
+    public click(): void {
+        this.handleClick();
+    }
+
     // Method to update button visibility if needed
     public setVisibility(visible: boolean): void {
         this.ribbonIcon.style.display = visible ? 'block' : 'none';
