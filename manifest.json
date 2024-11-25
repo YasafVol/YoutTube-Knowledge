@@ -1,7 +1,7 @@
 {
 	"id": "youtube-knowledge",
 	"name": "YouTube Knowledge",
-	"version": "1.0.0",
+	"version": "v1.0.0",
 	"minAppVersion": "0.1.0",
 	"description": "This plugin saves a transcript of a YouTube video to a file, and also a summary of the video, using Anthropic API.",
 	"author": "YasafVol",
