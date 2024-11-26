@@ -1,4 +1,4 @@
-import { TFile, Vault } from 'obsidian';
+import { TFile } from 'obsidian';
 import { TLDRService } from '../TLDRService';
 import { SettingsStore } from '../../store/SettingsStore';
 import { FileService } from '../FileService';
@@ -12,19 +12,38 @@ describe('TLDRService', () => {
     let tldrService: TLDRService;
     let settingsStore: jest.Mocked<SettingsStore>;
     let fileService: jest.Mocked<FileService>;
-    let mockFile: jest.Mocked<TFile>;
+    let mockFile: TFile;
 
     beforeEach(() => {
         // Reset mocks
-        settingsStore = new SettingsStore(null) as jest.Mocked<SettingsStore>;
-        fileService = new FileService(null) as jest.Mocked<FileService>;
-        mockFile = {
+        settingsStore = {
+            getLLMSettings: jest.fn(),
+            loadSettings: jest.fn(),
+            saveSettings: jest.fn()
+        } as unknown as jest.Mocked<SettingsStore>;
+        
+        fileService = {
+            createFile: jest.fn()
+        } as unknown as jest.Mocked<FileService>;
+
+        // Create a proper TFile instance
+        mockFile = new TFile();
+        Object.assign(mockFile, {
             path: 'test.md',
             basename: 'test',
+            name: 'test.md',
+            extension: 'md',
+            stat: { mtime: Date.now() },
+            parent: null,
             vault: {
-                read: jest.fn()
+                read: jest.fn().mockResolvedValue('test content')
             }
-        } as unknown as jest.Mocked<TFile>;
+        });
+
+        // Verify mockFile is actually a TFile instance
+        if (!(mockFile instanceof TFile)) {
+            throw new Error('Mock file setup failed: not a TFile instance');
+        }
 
         // Setup service
         tldrService = new TLDRService(settingsStore, fileService);
@@ -35,7 +54,6 @@ describe('TLDRService', () => {
             summaryPrompt: 'test-prompt',
             model: 'claude-3-sonnet-20240229'
         });
-        mockFile.vault.read.mockResolvedValue('test content');
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             json: () => Promise.resolve({ completion: 'test summary' })
@@ -53,6 +71,17 @@ describe('TLDRService', () => {
             'test-summary.md',
             expect.stringContaining('test summary')
         );
+    });
+
+    it('should reject non-TFile objects', async () => {
+        const invalidFile = {
+            path: 'test.md',
+            basename: 'test',
+            vault: { read: jest.fn() }
+        };
+        
+        // Now we can pass it directly since processFile accepts unknown type
+        await expect(tldrService.processFile(invalidFile)).rejects.toThrow('Invalid file object: Expected TFile instance');
     });
 
     it('should throw error if API key is missing', async () => {
@@ -76,7 +105,7 @@ describe('TLDRService', () => {
     });
 
     it('should throw error if file is empty', async () => {
-        mockFile.vault.read.mockResolvedValue('');
+        mockFile.vault.read = jest.fn().mockResolvedValue('');
 
         await expect(tldrService.processFile(mockFile)).rejects.toThrow('empty');
     });

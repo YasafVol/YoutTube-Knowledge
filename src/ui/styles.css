@@ -1,0 +1,9 @@
+.setting-item textarea {
+    width: 100%;
+    min-height: 200px;
+    rows: 10;
+}
+
+.setting-item.prompt-setting {
+    margin-bottom: 2em;
+}

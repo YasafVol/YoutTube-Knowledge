@@ -1,8 +1,70 @@
-/*
+/* Settings styles */
+.youtube-knowledge-textarea,
+.setting-item textarea {
+    width: 100%;
+    min-height: 200px;
+    resize: vertical;
+    font-family: monospace;
+    padding: 10px;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.youtube-knowledge-setting-margin,
+.setting-item.prompt-setting {
+    margin-bottom: 2em;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 1em;
+}
 
-If your plugin does not need CSS, delete this file.
+/* Ribbon button visibility */
+.youtube-knowledge-ribbon-hidden,
+.ribbon-button-hidden {
+    display: none;
+}
 
-*/
+/* API Key input styling */
+.api-key-input {
+    -webkit-text-security: disc;
+    text-security: disc;
+    width: 100%;
+    padding: 6px;
+}
+
+/* General settings styling */
+.setting-item {
+    padding: 1em 0;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.setting-item-name {
+    font-weight: bold;
+    margin-bottom: 0.5em;
+}
+
+.setting-item-description {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    margin-bottom: 1em;
+}
+
+/* Dropdown styling */
+.setting-item select {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+/* Button styling */
+.setting-item button {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.setting-item button:hover {
+    background-color: var(--interactive-accent-hover);
+}

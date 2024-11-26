@@ -28,10 +28,14 @@ export class TLDRService {
     /**
      * Processes a file to create a TLDR summary
      * @param file The file to process
-     * @throws Error if settings are missing or API fails
+     * @throws Error if file is invalid, settings are missing, or API fails
      */
-    async processFile(file: TFile): Promise<void> {
+    async processFile(file: unknown): Promise<void> {
         try {
+            if (!(file instanceof TFile)) {
+                throw new Error('Invalid file object: Expected TFile instance');
+            }
+
             new Notice('🤖 Starting TLDR generation...');
 
             // Validate settings

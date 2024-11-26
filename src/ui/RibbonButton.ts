@@ -40,7 +40,11 @@ export class RibbonButton {
 
     // Method to update button visibility if needed
     public setVisibility(visible: boolean): void {
-        this.ribbonIcon.style.display = visible ? 'block' : 'none';
+        if (visible) {
+            this.ribbonIcon.classList.remove('youtube-knowledge-ribbon-hidden');
+        } else {
+            this.ribbonIcon.classList.add('youtube-knowledge-ribbon-hidden');
+        }
     }
 
     // Cleanup method to be called when plugin is disabled

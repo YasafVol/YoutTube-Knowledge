@@ -93,15 +93,17 @@ export class SettingsTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Anthropic API Key')
             .setDesc('Enter your Anthropic API key for LLM operations')
-            .addText(text => text
-                .setPlaceholder('Enter API key')
-                .setValue(this.plugin.settings.getSettings().llm.anthropicKey)
-                .setDisabled(this.plugin.settings.getSettings().llm.anthropicKey !== '')
-                .inputEl.type = 'password')
+            .addText(text => {
+                text.setPlaceholder('Enter API key')
+                    .setValue(this.plugin.settings.getSettings().llm.anthropicKey)
+                    .setDisabled(this.plugin.settings.getSettings().llm.anthropicKey !== '');
+                text.inputEl.addClass('api-key-input');
+                return text;
+            })
             .addButton(button => button
                 .setButtonText(this.plugin.settings.getSettings().llm.anthropicKey ? 'Update API Key' : 'Save API Key')
                 .onClick(async () => {
-                    const input = containerEl.querySelector('input[type="password"]') as HTMLInputElement;
+                    const input = containerEl.querySelector('.api-key-input') as HTMLInputElement;
                     const apiKey = input.value.trim();
 
                     if (!apiKey) {
@@ -170,15 +172,9 @@ export class SettingsTab extends PluginSettingTab {
                         }
                     });
                 
-                // Make the textarea larger
-                text.inputEl.rows = 10;
-                text.inputEl.style.width = '100%';
-                text.inputEl.style.minHeight = '200px';
-                
                 return text;
             });
 
-        // Add some margin below the prompt setting
-        promptSetting.settingEl.style.marginBottom = '2em';
+        promptSetting.settingEl.addClass('prompt-setting');
     }
 }

@@ -42,7 +42,11 @@ export class FileRibbonButton {
 
     // Method to update button visibility if needed
     public setVisibility(visible: boolean): void {
-        this.ribbonIcon.style.display = visible ? 'block' : 'none';
+        if (!visible) {
+            this.ribbonIcon.addClass('ribbon-button-hidden');
+        } else {
+            this.ribbonIcon.removeClass('ribbon-button-hidden');
+        }
     }
 
     // Cleanup method to be called when plugin is disabled
