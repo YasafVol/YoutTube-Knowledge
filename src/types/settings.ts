@@ -19,6 +19,7 @@ export interface LLMSettings {
 export interface Settings {
     youtube: YouTubeSettings;
     llm: LLMSettings;
+    debugMode: boolean; // Add debug mode setting
 }
 
 export const DEFAULT_PROMPT = `Please provide a comprehensive summary of this YouTube video transcript. Focus on:
@@ -37,7 +38,8 @@ export const DEFAULT_SETTINGS: Settings = {
         anthropicKey: '',
         summaryPrompt: DEFAULT_PROMPT,
         model: 'claude-3-5-sonnet-latest'
-    }
+    },
+    debugMode: false // Default to false
 };
 
 export const MODEL_OPTIONS: { [key: string]: AnthropicModel } = {

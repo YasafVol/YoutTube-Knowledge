@@ -16,7 +16,7 @@ export class RibbonButton {
         // Add ribbon icon
         this.ribbonIcon = this.plugin.addRibbonIcon(
             'message-square-share',
-            'Open Transcript',
+            'Open transcript',
             (evt: MouseEvent) => {
                 // Handle click event
                 this.handleClick();

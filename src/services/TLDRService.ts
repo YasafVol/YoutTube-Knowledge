@@ -1,6 +1,8 @@
-import { TFile, Notice, requestUrl } from 'obsidian';
+import { TFile, Notice, requestUrl, Plugin } from 'obsidian';
 import { SettingsStore } from '../store/SettingsStore';
 import { FileService } from './FileService';
+import { DebugLogger } from '../utils/debug';
+import type { Settings } from '../types/settings';
 
 interface AnthropicResponse {
     content: [{
@@ -20,10 +22,15 @@ interface AnthropicError {
 }
 
 export class TLDRService {
+    private logger: DebugLogger;
+
     constructor(
         private settingsStore: SettingsStore,
-        private fileService: FileService
-    ) {}
+        private fileService: FileService,
+        plugin: Plugin & { settings: Settings }
+    ) {
+        this.logger = new DebugLogger(plugin);
+    }
 
     /**
      * Processes a file to create a TLDR summary
@@ -33,31 +40,39 @@ export class TLDRService {
     async processFile(file: unknown): Promise<void> {
         try {
             if (!(file instanceof TFile)) {
+                this.logger.error('Invalid file object provided:', file);
                 throw new Error('Invalid file object: Expected TFile instance');
             }
 
+            this.logger.log('Starting TLDR generation for file:', file.path);
             new Notice('🤖 Starting TLDR generation...');
 
             // Validate settings
             const settings = this.settingsStore.getLLMSettings();
             if (!settings.anthropicKey) {
+                this.logger.error('Anthropic API key not configured');
                 throw new Error('Anthropic API key is not configured');
             }
             if (!settings.summaryPrompt) {
+                this.logger.error('Summary prompt not configured');
                 throw new Error('Summary prompt is not configured');
             }
 
             // Read file content
             const content = await file.vault.read(file);
             if (!content.trim()) {
+                this.logger.error('Empty file content for:', file.path);
                 throw new Error('File is empty');
             }
+
+            this.logger.log('File content loaded, calling Anthropic API');
 
             // Call Anthropic API
             const { summary, cost } = await this.callAnthropicAPI(content, settings.anthropicKey, settings.summaryPrompt, settings.model);
 
             // Create summary file path based on original file
             const summaryPath = `${file.path.replace('.md', '')}-summary.md`;
+            this.logger.log('Creating summary file at:', summaryPath);
             
             const summaryContent = `---
 parent: [[${file.basename}]]
@@ -69,13 +84,16 @@ cost: ${cost}
 ${summary}`;
 
             await this.fileService.createFile(summaryPath, summaryContent);
+            this.logger.log('Summary created successfully', { path: summaryPath, cost });
             new Notice(`✅ Summary created successfully (Cost: $${cost.toFixed(4)})`);
 
         } catch (error) {
             if (error instanceof Error) {
+                this.logger.error('Failed to create summary:', error);
                 new Notice(`❌ Failed to create summary: ${error.message}`);
                 throw error;
             }
+            this.logger.error('Unknown error occurred');
             throw new Error('An unknown error occurred');
         }
     }
@@ -96,6 +114,8 @@ ${summary}`;
         model: string
     ): Promise<{ summary: string; cost: number }> {
         try {
+            this.logger.log('Calling Anthropic API with model:', model);
+
             const response = await requestUrl({
                 url: 'https://api.anthropic.com/v1/messages',
                 method: 'POST',
@@ -117,6 +137,7 @@ ${summary}`;
 
             if (response.status !== 200) {
                 const errorData = response.json as AnthropicError;
+                this.logger.error('API error response:', errorData);
                 throw new Error(`API error: ${errorData.error.message}`);
             }
 
@@ -138,6 +159,13 @@ ${summary}`;
             const outputTokens = data.usage?.output_tokens || 0;
             const cost = (inputTokens * inputRate) + (outputTokens * outputRate);
 
+            this.logger.log('API call successful', {
+                model,
+                inputTokens,
+                outputTokens,
+                cost
+            });
+
             return {
                 summary: data.content[0].text.trim(),
                 cost
@@ -147,10 +175,13 @@ ${summary}`;
             if (error instanceof Error) {
                 // Handle rate limits specifically
                 if (error.message.includes('rate')) {
+                    this.logger.error('Rate limit exceeded');
                     throw new Error('Rate limit exceeded. Please try again later.');
                 }
+                this.logger.error('API call failed:', error);
                 throw error;
             }
+            this.logger.error('Failed to connect to Anthropic API');
             throw new Error('Failed to connect to Anthropic API');
         }
     }

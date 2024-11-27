@@ -11,7 +11,7 @@ export class TranscriptModal extends Modal {
 
     onOpen() {
         const { contentEl } = this;
-        contentEl.createEl('h2', { text: 'YouTube Transcript' });
+        contentEl.createEl('h2', { text: 'YouTube transcript' });
 
         const submitUrl = () => {
             if (!this.url) {
@@ -48,7 +48,7 @@ export class TranscriptModal extends Modal {
         new Setting(contentEl)
             .addButton((btn) =>
                 btn
-                    .setButtonText('Get Transcript')
+                    .setButtonText('Get transcript')
                     .setCta()
                     .onClick(submitUrl)
             );

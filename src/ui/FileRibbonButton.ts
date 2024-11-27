@@ -1,4 +1,4 @@
-import { App, Plugin, setIcon } from 'obsidian';
+import { App, Plugin } from 'obsidian';
 import { FileService } from '../services/FileService';
 
 export class FileRibbonButton {
@@ -16,15 +16,12 @@ export class FileRibbonButton {
         // Add ribbon icon
         this.ribbonIcon = this.plugin.addRibbonIcon(
             'file-text',
-            'Create New File',
+            'Create new file',
             (evt: MouseEvent) => {
                 // Handle click event
                 this.handleClick();
             }
         );
-
-        // Update the icon to ensure proper styling
-        setIcon(this.ribbonIcon, 'file-text');
     }
 
     private async handleClick(): Promise<void> {

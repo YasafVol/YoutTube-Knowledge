@@ -1,6 +1,6 @@
 /* Settings styles */
-.youtube-knowledge-textarea,
-.setting-item textarea {
+.youtube-knowledge-settings .youtube-knowledge-textarea,
+.youtube-knowledge-settings textarea {
     width: 100%;
     min-height: 200px;
     resize: vertical;
@@ -8,8 +8,8 @@
     padding: 10px;
 }
 
-.youtube-knowledge-setting-margin,
-.setting-item.prompt-setting {
+.youtube-knowledge-settings .youtube-knowledge-setting-margin,
+.youtube-knowledge-settings .setting-item.prompt-setting {
     margin-bottom: 2em;
     border-bottom: 1px solid var(--background-modifier-border);
     padding-bottom: 1em;
@@ -22,7 +22,7 @@
 }
 
 /* API Key input styling */
-.api-key-input {
+.youtube-knowledge-settings .api-key-input {
     -webkit-text-security: disc;
     text-security: disc;
     width: 100%;
@@ -30,24 +30,20 @@
 }
 
 /* General settings styling */
-.setting-item {
-    padding: 1em 0;
-    border-top: 1px solid var(--background-modifier-border);
+.youtube-knowledge-settings .setting-item {
+    padding: var(--size-4-2);
 }
 
-.setting-item-name {
-    font-weight: bold;
-    margin-bottom: 0.5em;
+.youtube-knowledge-settings .setting-item-name {
+    font-weight: var(--font-medium);
 }
 
-.setting-item-description {
+.youtube-knowledge-settings .setting-item-description {
     color: var(--text-muted);
-    font-size: 0.9em;
-    margin-bottom: 1em;
 }
 
 /* Dropdown styling */
-.setting-item select {
+.youtube-knowledge-settings .setting-item select {
     padding: 6px;
     border-radius: 4px;
     border: 1px solid var(--background-modifier-border);
@@ -56,7 +52,7 @@
 }
 
 /* Button styling */
-.setting-item button {
+.youtube-knowledge-settings .setting-item button {
     padding: 6px 12px;
     border-radius: 4px;
     background-color: var(--interactive-accent);
@@ -65,6 +61,6 @@
     margin-left: 8px;
 }
 
-.setting-item button:hover {
+.youtube-knowledge-settings .setting-item button:hover {
     background-color: var(--interactive-accent-hover);
 }

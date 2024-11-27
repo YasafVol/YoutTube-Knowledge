@@ -1,7 +1,8 @@
-import { TFile } from 'obsidian';
+import { TFile, Plugin } from 'obsidian';
 import { TLDRService } from '../TLDRService';
 import { SettingsStore } from '../../store/SettingsStore';
 import { FileService } from '../FileService';
+import type { Settings } from '../../types/settings';
 
 // Mock implementations
 jest.mock('obsidian');
@@ -13,6 +14,7 @@ describe('TLDRService', () => {
     let settingsStore: jest.Mocked<SettingsStore>;
     let fileService: jest.Mocked<FileService>;
     let mockFile: TFile;
+    let mockPlugin: Plugin & { settings: Settings };
 
     beforeEach(() => {
         // Reset mocks
@@ -25,6 +27,22 @@ describe('TLDRService', () => {
         fileService = {
             createFile: jest.fn()
         } as unknown as jest.Mocked<FileService>;
+
+        // Create mock plugin with settings
+        mockPlugin = {
+            settings: {
+                debugMode: false,
+                youtube: {
+                    language: 'en',
+                    timeframeSeconds: 60
+                },
+                llm: {
+                    anthropicKey: 'test-key',
+                    summaryPrompt: 'test-prompt',
+                    model: 'claude-3-sonnet-20240229'
+                }
+            }
+        } as Plugin & { settings: Settings };
 
         // Create a proper TFile instance
         mockFile = new TFile();
@@ -45,8 +63,8 @@ describe('TLDRService', () => {
             throw new Error('Mock file setup failed: not a TFile instance');
         }
 
-        // Setup service
-        tldrService = new TLDRService(settingsStore, fileService);
+        // Setup service with mock plugin
+        tldrService = new TLDRService(settingsStore, fileService, mockPlugin);
 
         // Default mock implementations
         settingsStore.getLLMSettings.mockReturnValue({
@@ -131,5 +149,35 @@ describe('TLDRService', () => {
         global.fetch = jest.fn().mockRejectedValue(new Error('network error'));
 
         await expect(tldrService.processFile(mockFile)).rejects.toThrow('Failed to connect');
+    });
+
+    it('should log debug messages when debug mode is enabled', async () => {
+        // Create spy for console.log
+        const consoleSpy = jest.spyOn(console, 'log');
+        
+        // Enable debug mode
+        mockPlugin.settings.debugMode = true;
+
+        await tldrService.processFile(mockFile);
+
+        expect(consoleSpy).toHaveBeenCalled();
+        
+        // Clean up
+        consoleSpy.mockRestore();
+    });
+
+    it('should not log debug messages when debug mode is disabled', async () => {
+        // Create spy for console.log
+        const consoleSpy = jest.spyOn(console, 'log');
+        
+        // Ensure debug mode is disabled
+        mockPlugin.settings.debugMode = false;
+
+        await tldrService.processFile(mockFile);
+
+        expect(consoleSpy).not.toHaveBeenCalled();
+        
+        // Clean up
+        consoleSpy.mockRestore();
     });
 });

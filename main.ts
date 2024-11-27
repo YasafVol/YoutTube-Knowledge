@@ -7,24 +7,18 @@ import { SettingsTab } from './src/ui/SettingsTab';
 import { SettingsStore } from './src/store/SettingsStore';
 import './styles.css';
 
-export interface YoutubeKnowledge extends Plugin {
-    settings: SettingsStore;
-    onload(): Promise<void>;
-    onunload(): Promise<void>;
-}
-
-export default class YoutubeKnowledgePlugin extends Plugin implements YoutubeKnowledge {
+export default class YoutubeKnowledgePlugin extends Plugin {
     private ribbonButton: RibbonButton;
     private fileService: FileService;
     private tldrService: TLDRService;
-    settings: SettingsStore;
+    settingsStore: SettingsStore;
 
     async onload() {
-        this.settings = new SettingsStore(this);
-        await this.settings.loadSettings();
+        this.settingsStore = new SettingsStore(this);
+        await this.settingsStore.loadSettings();
 
         this.fileService = new FileService(this.app);
-        this.tldrService = new TLDRService(this.settings, this.fileService);
+        this.tldrService = new TLDRService(this.settingsStore, this.fileService);
 
         this.ribbonButton = new RibbonButton(
             this.app,
@@ -36,7 +30,7 @@ export default class YoutubeKnowledgePlugin extends Plugin implements YoutubeKno
 
         this.addCommand({
             id: 'open-youtube-transcript',
-            name: 'Open YouTube Transcript',
+            name: 'Open YouTube transcript',
             hotkeys: [],
             callback: () => {
                 this.ribbonButton.click();

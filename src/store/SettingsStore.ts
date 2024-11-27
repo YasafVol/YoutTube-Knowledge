@@ -118,4 +118,14 @@ export class SettingsStore {
             }
         });
     }
+
+    /**
+     * Updates debug mode setting
+     * @param enabled - Whether debug mode should be enabled
+     */
+    async updateDebugMode(enabled: boolean): Promise<void> {
+        await this.updateSettings({
+            debugMode: enabled
+        });
+    }
 }
