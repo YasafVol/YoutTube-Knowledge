@@ -1,5 +1,6 @@
-import { App, request } from 'obsidian';
+import { App, Plugin, request } from 'obsidian';
 import { YouTubeService } from './YouTubeService';
+import type { Settings } from '../types/settings';
 
 interface ProcessedURLData {
     cleanURL: string;
@@ -36,8 +37,16 @@ export class URLProcessor {
             const titleMeta = doc.querySelector('meta[name="title"]');
             const title = titleMeta?.getAttribute("content") || "Untitled Video";
             
-            // Fetch transcript
-            const transcript = await YouTubeService.fetchTranscript(cleanURL);
+            // Create YouTubeService instance with a temporary plugin object
+            // This is a workaround since we don't have access to the plugin instance in a static context
+            const tempPlugin = {
+                settings: {} as Settings,
+                manifest: {} as any,
+                app
+            } as Plugin & { settings: Settings };
+            
+            const youtubeService = new YouTubeService(tempPlugin);
+            const transcript = await youtubeService.fetchTranscript(cleanURL);
             
             return {
                 cleanURL,

@@ -5,6 +5,7 @@ import { FileService } from './src/services/FileService';
 import { TLDRService } from './src/services/TLDRService';
 import { SettingsTab } from './src/ui/SettingsTab';
 import { SettingsStore } from './src/store/SettingsStore';
+import { Settings, DEFAULT_SETTINGS } from './src/types/settings';
 import './styles.css';
 
 export default class YoutubeKnowledgePlugin extends Plugin {
@@ -12,13 +13,15 @@ export default class YoutubeKnowledgePlugin extends Plugin {
     private fileService: FileService;
     private tldrService: TLDRService;
     settingsStore: SettingsStore;
+    settings: Settings = DEFAULT_SETTINGS;
 
     async onload() {
         this.settingsStore = new SettingsStore(this);
         await this.settingsStore.loadSettings();
+        this.settings = this.settingsStore.getSettings();
 
         this.fileService = new FileService(this.app);
-        this.tldrService = new TLDRService(this.settingsStore, this.fileService);
+        this.tldrService = new TLDRService(this.settingsStore, this.fileService, this);
 
         this.ribbonButton = new RibbonButton(
             this.app,
