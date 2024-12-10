@@ -1,0 +1,75 @@
+{
+  "plugin": {
+    "name": "YouTube Knowledge",
+    "version": "1.0.0",
+    "description": "Save YouTube video transcripts and AI-generated summaries using Anthropic API",
+    "lastUpdated": "2024-12-05T09:01:04.045702"
+  },
+  "features": {
+    "has_settings": true,
+    "has_commands": true,
+    "has_markdown_processor": false,
+    "has_ribbon_icon": false
+  },
+  "files": {
+    "": [
+      "data.json",
+      "main.css",
+      "main.ts",
+      "manifest.json",
+      "package-lock.json",
+      "package.json",
+      "README.md",
+      "styles.css",
+      "tsconfig.json",
+      "versions.json"
+    ],
+    "coverage\\lcov-report": [
+      "base.css",
+      "prettify.css"
+    ],
+    "src\\services": [
+      "FileService.ts",
+      "TLDRService.ts",
+      "URLProcessor.ts",
+      "YouTubeService.ts"
+    ],
+    "src\\services\\__tests__": [
+      "TLDRService.test.ts",
+      "URLProcessor.test.ts"
+    ],
+    "src\\settings": [
+      "SettingsManager.ts"
+    ],
+    "src\\store": [
+      "appStore.ts",
+      "SettingsStore.ts"
+    ],
+    "src\\store\\__tests__": [
+      "appStore.test.ts"
+    ],
+    "src\\types": [
+      "index.ts",
+      "settings.ts"
+    ],
+    "src\\ui": [
+      "FileRibbonButton.ts",
+      "RibbonButton.ts",
+      "SettingsTab.ts",
+      "styles.css",
+      "TranscriptModal.ts"
+    ],
+    "src\\ui\\settings\\components": [
+      "APIKeySettings.ts",
+      "GeneralSettings.ts",
+      "ModelSettings.ts"
+    ],
+    "src\\utils": [
+      "debug.ts",
+      "validation.ts"
+    ],
+    "src\\utils\\__tests__": [
+      "validation.test.ts"
+    ]
+  }
+}

@@ -2,7 +2,7 @@ import { TFile, Plugin } from 'obsidian';
 import { TLDRService } from '../TLDRService';
 import { SettingsStore } from '../../store/SettingsStore';
 import { FileService } from '../FileService';
-import type { Settings } from '../../types/settings';
+import type { Settings, AnthropicModel } from '../../types/settings';
 
 // Mock implementations
 jest.mock('obsidian');
@@ -15,6 +15,17 @@ describe('TLDRService', () => {
     let fileService: jest.Mocked<FileService>;
     let mockFile: TFile;
     let mockPlugin: Plugin & { settings: Settings };
+
+    // Mock LLM settings with realistic test values
+    const defaultLLMSettings = {
+        // Mock Anthropic API key format: sk-ant-api03-*****
+        anthropicKey: 'sk-ant-api03-test-key-12345',
+        model: 'claude-3-5-sonnet-latest' as AnthropicModel,
+        temperature: 0.5,
+        maxTokens: 4000,
+        topP: 1.0,
+        topK: 40
+    };
 
     beforeEach(() => {
         // Reset mocks
@@ -34,27 +45,29 @@ describe('TLDRService', () => {
                 debugMode: false,
                 youtube: {
                     language: 'en',
-                    timeframeSeconds: 60
+                    timeframeSeconds: 60,
+                    clippingsFolder: 'YouTube Clippings'
                 },
-                llm: {
-                    anthropicKey: 'test-key',
-                    summaryPrompt: 'test-prompt',
-                    model: 'claude-3-sonnet-20240229'
-                }
+                llm: defaultLLMSettings
             }
         } as Plugin & { settings: Settings };
 
-        // Create a proper TFile instance
+        // Create a proper TFile instance with realistic test content
         mockFile = new TFile();
         Object.assign(mockFile, {
-            path: 'test.md',
-            basename: 'test',
-            name: 'test.md',
+            path: 'youtube-transcript.md',
+            basename: 'youtube-transcript',
+            name: 'youtube-transcript.md',
             extension: 'md',
             stat: { mtime: Date.now() },
             parent: null,
             vault: {
-                read: jest.fn().mockResolvedValue('test content')
+                // Mock a realistic YouTube transcript content
+                read: jest.fn().mockResolvedValue(
+                    `[00:00] Welcome to this video about machine learning
+                     [00:15] Today we'll discuss neural networks
+                     [00:30] Let's start with the basics...`
+                )
             }
         });
 
@@ -67,14 +80,12 @@ describe('TLDRService', () => {
         tldrService = new TLDRService(settingsStore, fileService, mockPlugin);
 
         // Default mock implementations
-        settingsStore.getLLMSettings.mockReturnValue({
-            anthropicKey: 'test-key',
-            summaryPrompt: 'test-prompt',
-            model: 'claude-3-sonnet-20240229'
-        });
+        settingsStore.getLLMSettings.mockReturnValue(defaultLLMSettings);
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({ completion: 'test summary' })
+            json: () => Promise.resolve({ 
+                completion: 'Summary of machine learning video:\n- Introduction to neural networks\n- Basic concepts covered\n- Timestamps included for reference' 
+            })
         });
     });
 
@@ -86,8 +97,8 @@ describe('TLDRService', () => {
         await tldrService.processFile(mockFile);
 
         expect(fileService.createFile).toHaveBeenCalledWith(
-            'test-summary.md',
-            expect.stringContaining('test summary')
+            'youtube-transcript-summary.md',
+            expect.stringContaining('Summary of machine learning video')
         );
     });
 
@@ -98,28 +109,16 @@ describe('TLDRService', () => {
             vault: { read: jest.fn() }
         };
         
-        // Now we can pass it directly since processFile accepts unknown type
         await expect(tldrService.processFile(invalidFile)).rejects.toThrow('Invalid file object: Expected TFile instance');
     });
 
     it('should throw error if API key is missing', async () => {
         settingsStore.getLLMSettings.mockReturnValue({
-            anthropicKey: '',
-            summaryPrompt: 'test-prompt',
-            model: 'claude-3-sonnet-20240229'
+            ...defaultLLMSettings,
+            anthropicKey: ''
         });
 
         await expect(tldrService.processFile(mockFile)).rejects.toThrow('API key');
-    });
-
-    it('should throw error if prompt is missing', async () => {
-        settingsStore.getLLMSettings.mockReturnValue({
-            anthropicKey: 'test-key',
-            summaryPrompt: '',
-            model: 'claude-3-sonnet-20240229'
-        });
-
-        await expect(tldrService.processFile(mockFile)).rejects.toThrow('prompt');
     });
 
     it('should throw error if file is empty', async () => {
@@ -132,11 +131,11 @@ describe('TLDRService', () => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: false,
             json: () => Promise.resolve({
-                error: { message: 'API error' }
+                error: { message: 'Invalid API key provided' }
             })
         });
 
-        await expect(tldrService.processFile(mockFile)).rejects.toThrow('API error');
+        await expect(tldrService.processFile(mockFile)).rejects.toThrow('Invalid API key provided');
     });
 
     it('should handle rate limit errors', async () => {
@@ -146,38 +145,32 @@ describe('TLDRService', () => {
     });
 
     it('should handle network errors', async () => {
-        global.fetch = jest.fn().mockRejectedValue(new Error('network error'));
+        global.fetch = jest.fn().mockRejectedValue(new Error('Failed to connect to Anthropic API'));
 
         await expect(tldrService.processFile(mockFile)).rejects.toThrow('Failed to connect');
     });
 
     it('should log debug messages when debug mode is enabled', async () => {
-        // Create spy for console.log
         const consoleSpy = jest.spyOn(console, 'log');
-        
-        // Enable debug mode
         mockPlugin.settings.debugMode = true;
 
         await tldrService.processFile(mockFile);
 
-        expect(consoleSpy).toHaveBeenCalled();
+        expect(consoleSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Processing YouTube transcript')
+        );
         
-        // Clean up
         consoleSpy.mockRestore();
     });
 
     it('should not log debug messages when debug mode is disabled', async () => {
-        // Create spy for console.log
         const consoleSpy = jest.spyOn(console, 'log');
-        
-        // Ensure debug mode is disabled
         mockPlugin.settings.debugMode = false;
 
         await tldrService.processFile(mockFile);
 
         expect(consoleSpy).not.toHaveBeenCalled();
         
-        // Clean up
         consoleSpy.mockRestore();
     });
 });

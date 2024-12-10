@@ -1,11 +1,18 @@
 /* Settings styles */
-.youtube-knowledge-settings .youtube-knowledge-textarea,
-.youtube-knowledge-settings textarea {
+.setting-item-control {
     width: 100%;
-    min-height: 200px;
-    resize: vertical;
+}
+
+.setting-item-control textarea {
+    width: 300px !important;
+    min-height: 200px !important;
+    resize: both !important;
     font-family: monospace;
     padding: 10px;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
 }
 
 .youtube-knowledge-settings .youtube-knowledge-setting-margin,

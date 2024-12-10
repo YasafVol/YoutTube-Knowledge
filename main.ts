@@ -20,7 +20,7 @@ export default class YoutubeKnowledgePlugin extends Plugin {
         await this.settingsStore.loadSettings();
         this.settings = this.settingsStore.getSettings();
 
-        this.fileService = new FileService(this.app);
+        this.fileService = new FileService(this.app, this.settingsStore);
         this.tldrService = new TLDRService(this.settingsStore, this.fileService, this);
 
         this.ribbonButton = new RibbonButton(
@@ -47,7 +47,7 @@ export default class YoutubeKnowledgePlugin extends Plugin {
         new Notice(`Processing URL: ${dirtyURL}`);
         
         try {
-            const processedData = await URLProcessor.processURL(dirtyURL, this.app);
+            const processedData = await URLProcessor.processURL(dirtyURL, this.app, this.settings);
             new Notice(`Clean URL: ${processedData.cleanURL}`);
 
             const file = await this.fileService.createYouTubeVideoFile(

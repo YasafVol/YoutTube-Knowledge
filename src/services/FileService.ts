@@ -1,7 +1,13 @@
 import { App, TFile } from 'obsidian';
+import { SettingsStore } from '../store/SettingsStore';
+import { DEFAULT_SETTINGS } from '../types/settings';
 
 export class FileService {
-    constructor(private app: App) {}
+    private settingsStore: SettingsStore;
+
+    constructor(private app: App, settingsStore: SettingsStore) {
+        this.settingsStore = settingsStore;
+    }
 
     /**
      * Creates a new file in the vault
@@ -14,7 +20,7 @@ export class FileService {
             // Get unique filename
             const uniquePath = await this.getUniqueFilePath(path);
 
-            // Create the file
+            // Create the file directly in the vault root
             const file = await this.app.vault.create(uniquePath, content);
             return file;
         } catch (error) {
@@ -37,10 +43,19 @@ export class FileService {
         
         // Get current date in YYYY-MM-DD format
         const currentDate = new Date().toISOString().split('T')[0];
+
+        // Get the clippings folder path from settings
+        const settings = this.settingsStore.getSettings();
+        const folderPath = settings?.youtube?.clippingsFolder || DEFAULT_SETTINGS.youtube.clippingsFolder;
+
+        // Ensure the clippings folder exists
+        if (!(await this.app.vault.adapter.exists(folderPath))) {
+            await this.app.vault.createFolder(folderPath);
+        }
         
-        // Create the file with .md extension
+        // Create the file with .md extension in the clippings folder
         return await this.createFile(
-            `${safeTitle}.md`,
+            `${folderPath}/${safeTitle}.md`,
             `---\nurl: ${url}\ncreated: ${currentDate}\n---\n\n${transcript || ''}`
         );
     }
@@ -53,12 +68,12 @@ export class FileService {
     private async getUniqueFilePath(basePath: string): Promise<string> {
         let counter = 1;
         let uniquePath = basePath;
-        const ext = basePath.includes('.') ? basePath.split('.').pop() : '';
-        const baseWithoutExt = basePath.includes('.') ? 
-            basePath.slice(0, basePath.lastIndexOf('.')) : 
-            basePath;
 
         while (await this.app.vault.adapter.exists(uniquePath)) {
+            const ext = basePath.includes('.') ? basePath.split('.').pop() : '';
+            const baseWithoutExt = basePath.includes('.') ? 
+                basePath.slice(0, basePath.lastIndexOf('.')) : 
+                basePath;
             uniquePath = `${baseWithoutExt} ${counter}.${ext}`;
             counter++;
         }

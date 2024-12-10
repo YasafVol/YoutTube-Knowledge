@@ -3,6 +3,7 @@ import { SettingsStore } from '../store/SettingsStore';
 import { FileService } from './FileService';
 import { DebugLogger } from '../utils/debug';
 import type { Settings } from '../types/settings';
+import { DEFAULT_PROMPT } from '../prompts/default_prompt';
 
 interface AnthropicResponse {
     content: [{
@@ -53,10 +54,6 @@ export class TLDRService {
                 this.logger.error('Anthropic API key not configured');
                 throw new Error('Anthropic API key is not configured');
             }
-            if (!settings.summaryPrompt) {
-                this.logger.error('Summary prompt not configured');
-                throw new Error('Summary prompt is not configured');
-            }
 
             // Read file content
             const content = await file.vault.read(file);
@@ -68,14 +65,18 @@ export class TLDRService {
             this.logger.log('File content loaded, calling Anthropic API');
 
             // Call Anthropic API
-            const { summary, cost } = await this.callAnthropicAPI(content, settings.anthropicKey, settings.summaryPrompt, settings.model);
+            const { summary, cost } = await this.callAnthropicAPI(content, settings.anthropicKey, settings.model);
 
             // Create summary file path based on original file
             const summaryPath = `${file.path.replace('.md', '')}-summary.md`;
             this.logger.log('Creating summary file at:', summaryPath);
             
+            // Get current date in YYYY-MM-DD format
+            const currentDate = new Date().toISOString().split('T')[0];
+            
             const summaryContent = `---
 parent: [[${file.basename}]]
+created: ${currentDate}
 cost: ${cost}
 ---
 
@@ -102,15 +103,13 @@ ${summary}`;
      * Calls the Anthropic API to generate a summary
      * @param content The content to summarize
      * @param apiKey The Anthropic API key
-     * @param prompt The summary prompt
      * @param model The model to use
      * @returns The generated summary and estimated cost
      * @throws Error if API call fails
      */
     private async callAnthropicAPI(
         content: string, 
-        apiKey: string, 
-        prompt: string,
+        apiKey: string,
         model: string
     ): Promise<{ summary: string; cost: number }> {
         try {
@@ -129,7 +128,7 @@ ${summary}`;
                     max_tokens: 4000,
                     messages: [{
                         role: 'user',
-                        content: `${prompt}\n\nContent to summarize:\n${content}`
+                        content: `${DEFAULT_PROMPT}\n\nContent to summarize:\n${content}`
                     }],
                     temperature: 0.5
                 }),

@@ -1,0 +1,220 @@
+{
+    "plugin": {
+      "name": "YouTube Knowledge",
+      "version": "1.0.0",
+      "description": "Save YouTube video transcripts and AI-generated summaries using Anthropic API",
+      "lastUpdated": "2024-12-05T09:01:04.045702",
+      "architecture": {
+        "pattern": "Service-oriented architecture",
+        "dataFlow": [
+          "YouTube URL -> URLProcessor -> YouTubeService",
+          "YouTubeService -> TLDRService -> Summary Services",
+          "Settings -> SettingsStore -> Services"
+        ],
+        "stateManagement": "Single store with settings persistence"
+      }
+    },
+    "components": {
+      "services": {
+        "YouTubeService": {
+          "purpose": "Handles YouTube API integration and transcript fetching",
+          "dependencies": ["URLProcessor", "FileService"],
+          "keyFeatures": [
+            "Transcript fetching",
+            "Video metadata extraction",
+            "Multi-language support with fallback",
+            "Dynamic language selection from settings",
+            "Automatic caption track selection"
+          ]
+        },
+        "TLDRService": {
+          "purpose": "Orchestrates the summary generation process",
+          "dependencies": [
+            "AnthropicService",
+            "CostCalculationService",
+            "NotificationService",
+            "SettingsValidator",
+            "SummaryFileProcessor"
+          ],
+          "keyFeatures": ["Process coordination", "Error handling", "Service orchestration"]
+        },
+        "AnthropicService": {
+          "purpose": "Manages Anthropic API communication",
+          "dependencies": [],
+          "keyFeatures": [
+            "API requests", 
+            "Response handling", 
+            "Token usage tracking",
+            "Model parameter configuration",
+            "Generation settings control"
+          ]
+        },
+        "CostCalculationService": {
+          "purpose": "Handles cost calculations for API usage",
+          "dependencies": [],
+          "keyFeatures": ["Model rate management", "Token cost calculation"]
+        },
+        "NotificationService": {
+          "purpose": "Manages user notifications and logging",
+          "dependencies": [],
+          "keyFeatures": ["Progress notifications", "Error notifications", "Debug logging"]
+        },
+        "SettingsValidator": {
+          "purpose": "Validates service configuration",
+          "dependencies": [],
+          "keyFeatures": [
+            "API key validation", 
+            "Model validation", 
+            "Prompt validation",
+            "Temperature validation",
+            "Token limits validation",
+            "Generation parameters validation"
+          ]
+        },
+        "SummaryFileProcessor": {
+          "purpose": "Handles summary file operations",
+          "dependencies": [],
+          "keyFeatures": ["File validation", "Content generation", "File creation"]
+        },
+        "FileService": {
+          "purpose": "Handles saving and loading of transcripts and summaries",
+          "dependencies": ["SettingsStore"],
+          "keyFeatures": [
+            "File operations",
+            "Data persistence",
+            "Clippings folder management",
+            "Automatic folder creation",
+            "Path normalization",
+            "Unique filename generation",
+            "Settings-based path resolution",
+            "Default path fallback"
+          ]
+        },
+        "URLProcessor": {
+          "purpose": "Validates and processes YouTube URLs",
+          "dependencies": [],
+          "keyFeatures": [
+            "URL validation",
+            "Video ID extraction",
+            "Multiple URL format support",
+            "Input sanitization",
+            "Error handling with descriptive messages",
+            "Support for standard, short, and embedded URLs"
+          ]
+        }
+      },
+      "ui": {
+        "TranscriptModal": {
+          "purpose": "Displays transcripts and summaries",
+          "dependencies": ["TLDRService", "YouTubeService"]
+        },
+        "SettingsTab": {
+          "purpose": "Plugin configuration interface",
+          "subComponents": ["APIKeySettings", "GeneralSettings", "ModelSettings"],
+          "settings": {
+            "general": [
+              "Language selection",
+              "Timeframe configuration",
+              "Clippings folder path",
+              "Debug mode toggle"
+            ],
+            "model": [
+              "Model selection",
+              "Temperature control (0-1)",
+              "Max tokens limit",
+              "Top P sampling (0-1)",
+              "Top K filtering (1-100)"
+            ]
+          }
+        }
+      }
+    },
+    "fileStructure": {
+      "src": {
+        "services": {
+          "root": "Core business logic and API integrations",
+          "summary": "Decomposed summary generation services"
+        },
+        "prompts": {
+          "purpose": "Centralized prompt management",
+          "files": {
+            "default_prompt.ts": "Default prompt template for video analysis"
+          }
+        },
+        "settings": "Configuration management",
+        "store": "State management",
+        "types": "TypeScript type definitions",
+        "ui": "User interface components",
+        "utils": "Helper functions and utilities"
+      },
+      "tests": {
+        "location": "Adjacent to implementation files",
+        "pattern": "*.test.ts"
+      }
+    },
+    "technicalDetails": {
+      "dependencies": {
+        "core": ["obsidian", "@anthropic-ai/sdk", "youtube-transcript-api"],
+        "development": ["typescript", "jest", "esbuild"]
+      },
+      "apis": {
+        "anthropic": {
+          "purpose": "AI-powered summary generation",
+          "configKey": "anthropicApiKey",
+          "models": {
+            "claude-3-opus": {"inputRate": 0.000015, "outputRate": 0.000075},
+            "claude-3-sonnet": {"inputRate": 0.000015, "outputRate": 0.000075},
+            "claude-3-haiku": {"inputRate": 0.000003, "outputRate": 0.000015}
+          },
+          "parameters": {
+            "temperature": {
+              "range": "0.0 to 1.0",
+              "default": 0.5,
+              "description": "Controls randomness in output generation"
+            },
+            "maxTokens": {
+              "range": "1 to 100000",
+              "default": 4000,
+              "description": "Maximum length of generated response"
+            },
+            "topP": {
+              "range": "0.0 to 1.0",
+              "default": 1.0,
+              "description": "Nucleus sampling threshold for token selection"
+            },
+            "topK": {
+              "range": "1 to 1000",
+              "default": 40,
+              "description": "Number of highest probability tokens to consider"
+            }
+          }
+        },
+        "youtube": {
+          "purpose": "Transcript and video metadata fetching",
+          "configKey": "youtubeApiKey"
+        }
+      },
+      "storage": {
+        "clippings": {
+          "defaultFolder": "YouTube Clippings",
+          "features": [
+            "Customizable folder path",
+            "Automatic folder creation",
+            "Settings persistence",
+            "Path normalization",
+            "Unique filename generation"
+          ]
+        }
+      }
+    },
+    "development": {
+      "setup": [
+        "Anthropic API key required in settings",
+        "YouTube Data API credentials needed",
+        "Node.js development environment"
+      ],
+      "buildProcess": "esbuild for bundling",
+      "testing": "Jest with required coverage reporting",
+      "codeStyle": "TypeScript strict mode with ESLint"
+    }
+  }

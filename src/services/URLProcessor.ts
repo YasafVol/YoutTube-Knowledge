@@ -13,18 +13,23 @@ export class URLProcessor {
      * Processes and validates a YouTube URL
      * @param dirtyURL - The raw URL input from the user
      * @param app - The Obsidian App instance
+     * @param settings - The plugin settings
      * @returns ProcessedURLData containing clean URL, title, and transcript
      * @throws Error if URL is invalid
      */
-    public static async processURL(dirtyURL: string, app: App): Promise<ProcessedURLData> {
+    public static async processURL(dirtyURL: string, app: App, settings: Settings): Promise<ProcessedURLData> {
         try {
+            if (!dirtyURL) {
+                throw new Error('URL cannot be empty');
+            }
+
             // Remove whitespace
             let cleanURL = dirtyURL.trim();
 
             // Extract video ID using various YouTube URL formats
             const videoId = URLProcessor.extractVideoId(cleanURL);
             if (!videoId) {
-                throw new Error('Invalid YouTube URL format');
+                throw new Error('Invalid YouTube URL format. Please provide a valid YouTube video URL.');
             }
 
             // Construct clean YouTube URL
@@ -37,10 +42,9 @@ export class URLProcessor {
             const titleMeta = doc.querySelector('meta[name="title"]');
             const title = titleMeta?.getAttribute("content") || "Untitled Video";
             
-            // Create YouTubeService instance with a temporary plugin object
-            // This is a workaround since we don't have access to the plugin instance in a static context
+            // Create YouTubeService instance with proper settings
             const tempPlugin = {
-                settings: {} as Settings,
+                settings,
                 manifest: {} as any,
                 app
             } as Plugin & { settings: Settings };
@@ -54,7 +58,11 @@ export class URLProcessor {
                 transcript
             };
         } catch (error) {
-            throw new Error(`URL Processing failed: ${error.message}`);
+            if (error instanceof Error) {
+                throw new Error(`URL Processing failed: ${error.message}`);
+            } else {
+                throw new Error('URL Processing failed: Unknown error occurred');
+            }
         }
     }
 

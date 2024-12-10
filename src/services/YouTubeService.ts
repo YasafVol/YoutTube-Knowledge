@@ -20,11 +20,12 @@ interface CaptionTrack {
 
 export class YouTubeService {
     private readonly INTERVAL_SECONDS = 30;
-    private readonly LANGUAGE_CODE = 'en';
     private logger: DebugLogger;
+    private settings: Settings;
 
     constructor(plugin: Plugin & { settings: Settings }) {
         this.logger = new DebugLogger(plugin);
+        this.settings = plugin.settings;
     }
 
     /**
@@ -73,20 +74,27 @@ export class YouTubeService {
         
         this.logger.log('Available caption tracks:', captionTracks);
         
-        const englishTrack = captionTracks.find((track) => 
-            track.languageCode.includes(this.LANGUAGE_CODE)
+        // Use configured language from settings
+        const preferredLanguage = this.settings.youtube.language;
+        const preferredTrack = captionTracks.find((track) => 
+            track.languageCode.includes(preferredLanguage)
+        );
+
+        // Fallback to English if preferred language not found
+        const selectedTrack = preferredTrack ?? captionTracks.find((track) => 
+            track.languageCode.includes('en')
         ) ?? captionTracks[0];
 
-        if (!englishTrack) {
-            this.logger.error('No English captions available');
-            throw new Error("No English captions available");
+        if (!selectedTrack) {
+            this.logger.error('No captions available');
+            throw new Error(`No captions available in ${preferredLanguage} or English`);
         }
 
-        this.logger.log('Selected caption track:', englishTrack);
+        this.logger.log('Selected caption track:', selectedTrack);
 
-        const captionsUrl = englishTrack.baseUrl.startsWith("https://")
-            ? englishTrack.baseUrl
-            : "https://www.youtube.com" + englishTrack.baseUrl;
+        const captionsUrl = selectedTrack.baseUrl.startsWith("https://")
+            ? selectedTrack.baseUrl
+            : "https://www.youtube.com" + selectedTrack.baseUrl;
 
         const captionsResponse = await request(captionsUrl);
         const captionsDoc = parser.parseFromString(captionsResponse, 'text/xml');

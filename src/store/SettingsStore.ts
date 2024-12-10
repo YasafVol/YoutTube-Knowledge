@@ -83,8 +83,13 @@ export class SettingsStore {
      * Updates YouTube settings
      * @param language - Selected language
      * @param timeframeSeconds - Timeframe in seconds
+     * @param clippingsFolder - Path to store YouTube clippings
      */
-    async updateYouTubeSettings(language: string, timeframeSeconds: number): Promise<void> {
+    async updateYouTubeSettings(
+        language: string, 
+        timeframeSeconds: number,
+        clippingsFolder?: string
+    ): Promise<void> {
         if (timeframeSeconds <= 0) {
             throw new Error('Timeframe must be greater than 0 seconds');
         }
@@ -93,7 +98,8 @@ export class SettingsStore {
             youtube: {
                 ...this.settings.youtube,
                 language,
-                timeframeSeconds
+                timeframeSeconds,
+                ...(clippingsFolder && { clippingsFolder })
             }
         });
     }
@@ -101,21 +107,52 @@ export class SettingsStore {
     /**
      * Updates LLM settings
      * @param anthropicKey - Anthropic API key
-     * @param summaryPrompt - Custom summary prompt
      * @param model - Anthropic model selection
+     * @param temperature - Controls randomness (0.0 to 1.0)
+     * @param maxTokens - Maximum length of generated text
+     * @param topP - Nucleus sampling threshold (0.0 to 1.0)
+     * @param topK - Number of tokens to consider
      */
-    async updateLLMSettings(anthropicKey: string, summaryPrompt: string, model?: AnthropicModel): Promise<void> {
-        if (!anthropicKey && this.settings.llm.anthropicKey === '') {
+    async updateLLMSettings(
+        anthropicKey?: string,
+        model?: AnthropicModel,
+        temperature?: number,
+        maxTokens?: number,
+        topP?: number,
+        topK?: number
+    ): Promise<void> {
+        // Validate required settings if being updated
+        if (anthropicKey === '') {
             throw new Error('Anthropic API key is required');
         }
 
+        // Create new settings object with only defined values
+        const newSettings = {
+            ...this.settings.llm,
+            ...(anthropicKey !== undefined && { anthropicKey }),
+            ...(model !== undefined && { model }),
+            ...(temperature !== undefined && { temperature }),
+            ...(maxTokens !== undefined && { maxTokens }),
+            ...(topP !== undefined && { topP }),
+            ...(topK !== undefined && { topK })
+        };
+
+        // Validate numeric ranges
+        if (temperature !== undefined && (temperature < 0 || temperature > 1)) {
+            throw new Error('Temperature must be between 0 and 1');
+        }
+        if (maxTokens !== undefined && maxTokens <= 0) {
+            throw new Error('Max tokens must be greater than 0');
+        }
+        if (topP !== undefined && (topP < 0 || topP > 1)) {
+            throw new Error('Top P must be between 0 and 1');
+        }
+        if (topK !== undefined && topK <= 0) {
+            throw new Error('Top K must be greater than 0');
+        }
+
         await this.updateSettings({
-            llm: {
-                ...this.settings.llm,
-                ...(anthropicKey && { anthropicKey }),
-                ...(summaryPrompt && { summaryPrompt }),
-                ...(model && { model })
-            }
+            llm: newSettings
         });
     }
 
