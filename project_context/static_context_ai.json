@@ -1,0 +1,163 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2024-01-17",
+    "schema": "https://schema.org/SoftwareApplication",
+    "aiInstructions": {
+      "contextUsage": [
+        "Review project_context/static_context.json before making changes",
+        "Ensure changes align with documented patterns",
+        "Update context documentation when modifying core components"
+      ],
+      "analysisGuidelines": [
+        "Check component dependencies before modifications",
+        "Validate against documented data flows",
+        "Consider impact on existing integration points"
+      ]
+    }
+  },
+  "project": {
+    "name": "YoutubeKnowledge",
+    "type": "obsidian-plugin",
+    "description": "An Obsidian plugin for managing YouTube knowledge",
+    "semanticStructure": {
+      "components": {
+        "main": {
+          "file": "main.ts",
+          "type": "EntryPoint",
+          "dependencies": ["settings", "youtube-api"],
+          "responsibilities": [
+            "Plugin initialization",
+            "Settings management",
+            "Core feature coordination"
+          ],
+          "interfaces": {
+            "implements": ["Plugin"],
+            "extends": ["Component"]
+          },
+          "stateManagement": {
+            "type": "Observable",
+            "key_states": ["settings", "youtube_connection"]
+          }
+        },
+        "settings": {
+          "file": "src/settings.ts",
+          "type": "Configuration",
+          "schema": {
+            "properties": {
+              "apiKey": "string",
+              "syncInterval": "number"
+            }
+          },
+          "persistence": "data.json",
+          "validation_rules": [
+            "apiKey must be valid YouTube API key",
+            "syncInterval between 1 and 24 hours"
+          ]
+        }
+      },
+      "dataFlows": [
+        {
+          "id": "settings_flow",
+          "type": "ConfigurationFlow",
+          "steps": [
+            {
+              "from": "SettingsUI",
+              "to": "SettingsStore",
+              "dataType": "SettingsData",
+              "validation": "pre-persistence"
+            },
+            {
+              "from": "SettingsStore",
+              "to": "PluginConfig",
+              "dataType": "ValidatedSettings",
+              "trigger": "onChange"
+            }
+          ]
+        },
+        {
+          "id": "youtube_flow",
+          "type": "IntegrationFlow",
+          "steps": [
+            {
+              "from": "YouTubeAPI",
+              "to": "DataProcessor",
+              "dataType": "VideoMetadata",
+              "format": "JSON"
+            },
+            {
+              "from": "DataProcessor",
+              "to": "KnowledgeBase",
+              "dataType": "ProcessedKnowledge",
+              "transformation": "video-to-notes"
+            }
+          ]
+        }
+      ]
+    },
+    "conventions": {
+      "codePatterns": {
+        "async": {
+          "pattern": "async/await",
+          "useCases": ["API calls", "File operations"],
+          "errorHandling": "try/catch with specific error types"
+        },
+        "events": {
+          "pattern": "Observer",
+          "implementation": "Obsidian events API",
+          "naming": "on{Event}",
+          "examples": ["onunload", "onsettingschange"]
+        },
+        "types": {
+          "pattern": "TypeScript interfaces",
+          "location": "src/types.ts",
+          "naming": "PascalCase",
+          "examples": ["SettingsData", "YouTubeMetadata"]
+        }
+      },
+      "fileOrganization": {
+        "src/": {
+          "purpose": "TypeScript source files",
+          "structure": "Feature-based modules"
+        },
+        "styles.css": {
+          "purpose": "Global styles",
+          "methodology": "BEM naming"
+        }
+      }
+    },
+    "aiConsiderations": {
+      "criticalPaths": [
+        {
+          "component": "YouTubeAPI",
+          "considerations": [
+            "Rate limiting",
+            "API key validation",
+            "Error handling"
+          ]
+        },
+        {
+          "component": "DataProcessor",
+          "considerations": [
+            "Memory efficiency",
+            "Data validation",
+            "Error recovery"
+          ]
+        }
+      ],
+      "testingRequirements": {
+        "coverage": "80%",
+        "criticalAreas": [
+          "YouTube API integration",
+          "Data persistence",
+          "Settings validation"
+        ]
+      },
+      "securityConsiderations": [
+        "API key storage",
+        "Data sanitization",
+        "Permission handling"
+      ]
+    }
+  }
+}
